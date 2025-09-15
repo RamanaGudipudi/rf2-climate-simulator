@@ -510,7 +510,7 @@ fragmented compliance to strategic decarbonization aligned with planetary bounda
 st.markdown("---")
 st.markdown("""
 **Methodology Note**: This simulator demonstrates the problem complexity that necessitates RF2 research. 
-It is based on the research artcile titiled "Operationalizing corporate climate action through five research frontiers" 
+It is based on the perspective research artcile titled "Operationalizing corporate climate action through five research frontiers" 
 submitted to Nature Sustainability and uses real corporate disclosure data to highlight 
 the urgent need for industry-specific decarbonization blueprints.
 
