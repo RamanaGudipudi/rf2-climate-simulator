@@ -60,6 +60,29 @@ industry_data = {
         'key_challenge': '91% of emissions have no methodology to link equipment efficiency to sectoral pathways',
         'cdp_sample_size': 166,
         'main_gap': 'No framework for translating product improvements into science-based targets'
+    },
+    'Financial Services': {
+        'scope3_total_emissions': 99.98,  # Extreme Scope 3 dominance
+        'sector_dependencies': {
+            'All_Sectors_via_Investments': {'percentage': 99, 'guidance': 'PCAF available', 'cost_range': 'Variable by sector', 'scope3_category': 'C15: Financed emissions', 'color': '#9C27B0'},
+            'Buildings': {'percentage': 1, 'guidance': 'Available', 'cost_range': '$0-50/tCO2e', 'scope3_category': 'C13: Real estate portfolio', 'color': '#2E7D32'}
+        },
+        'key_challenge': 'Portfolio emissions span ALL sectors but no methodology links PCAF to sectoral pathways',
+        'cdp_sample_size': 377,
+        'main_gap': 'Financed emissions 700x larger than direct, but sectoral investment optimization lacks science-based framework'
+    },
+    'Chemicals': {
+        'scope3_total_emissions': 44,
+        'sector_dependencies': {
+            'Industry': {'percentage': 58, 'guidance': 'Limited', 'cost_range': '$20-100/tCO2e', 'scope3_category': 'C1: Raw materials', 'color': '#FF5722'},
+            'Multiple_Downstream': {'percentage': 19, 'guidance': 'None', 'cost_range': '$50-200/tCO2e', 'scope3_category': 'C11: Use in other industries', 'color': '#F44336'},
+            'Transport': {'percentage': 12, 'guidance': 'Generic only', 'cost_range': '$0-50/tCO2e', 'scope3_category': 'C4+C9: Transport', 'color': '#FF9800'},
+            'Power': {'percentage': 8, 'guidance': 'Available', 'cost_range': '$0-20/tCO2e', 'scope3_category': 'C2: Production facilities', 'color': '#2E7D32'},
+            'Buildings': {'percentage': 3, 'guidance': 'Limited', 'cost_range': '$100-200/tCO2e', 'scope3_category': 'C12: End-of-life', 'color': '#FF5722'}
+        },
+        'key_challenge': 'Intermediate products create unknown downstream use-phase across multiple industries',
+        'cdp_sample_size': 146,
+        'main_gap': 'No methodology for tracking chemical products through complex multi-industry value chains'
     }
 }
 
