@@ -510,8 +510,9 @@ fragmented compliance to strategic decarbonization aligned with planetary bounda
 st.markdown("---")
 st.markdown("""
 **Methodology Note**: This simulator demonstrates the problem complexity that necessitates RF2 research. 
-It is based on peer-reviewed research from "Operationalizing corporate climate action through five research frontiers" 
-and uses real corporate disclosure data to highlight the urgent need for industry-specific decarbonization blueprints.
+It is based on the research artcile titiled "Operationalizing corporate climate action through five research frontiers" 
+submitted to Nature Sustainability and uses real corporate disclosure data to highlight 
+the urgent need for industry-specific decarbonization blueprints.
 
 **Citation**: CDP (2022). Technical Note: Relevance of Scope 3 Categories by Sector. 
 IPCC (2022). Climate Change 2022: Mitigation of Climate Change, Chapter 12: Cross-sectoral Perspectives.
