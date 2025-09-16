@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 
 # Set page config
 st.set_page_config(
-    page_title="Corporate Near-term Targets: The need for Industry-specific Pathways",
+    page_title="Near-term Decarbonsiation Targets for corporations: The need for Industry-specific Pathways",
     page_icon="🎯",
     layout="wide"
 )
