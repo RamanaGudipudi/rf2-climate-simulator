@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 
 # Set page config
 st.set_page_config(
-    page_title="Industry-Specific Decarbonization Pathways: Why Sectoral Approaches Fail",
+    page_title="Corporate Near-term Targets: The need for Industry-specific Pathways",
     page_icon="🎯",
     layout="wide"
 )
