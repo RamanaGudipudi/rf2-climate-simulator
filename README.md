@@ -71,7 +71,3 @@ This simulator demonstrates the problem - the solution requires dedicated resear
 ## Contributing
 
 This tool is designed to raise awareness about research gaps. For scientific collaboration on RF2 development, please reach out to the research team.
-
-## License
-
-MIT License - Feel free to use and adapt for educational and research purposes.
