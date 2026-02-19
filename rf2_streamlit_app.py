@@ -301,18 +301,9 @@ def main():
         
         st.markdown("---")
         
-        # Industry selector
-        st.markdown("## 🏭 Select Industry")
-        selected_industry = st.selectbox(
-            "Choose industry to analyze:",
-            list(industry_data.keys()),
-            help="Based on CDP 2021 corporate disclosure data"
-        )
-        
-        st.markdown("---")
-        
-        # Quick stats
-        data = industry_data[selected_industry]
+        # Quick stats for selected industry
+        selected_industry = st.session_state.get('main_industry_selector', 'Food, Beverage & Tobacco')
+        data = industry_data.get(selected_industry, industry_data['Food, Beverage & Tobacco'])
         st.markdown(f"""
         <div style="font-size: 0.9rem; line-height: 1.8;">
         <b>📊 {selected_industry}</b><br>
@@ -398,6 +389,11 @@ def main():
     <p style="font-size: 1.2rem;">
     Can IPCC sectoral pathways adequately guide industry-specific corporate decarbonization?
     </p>
+    <p style="font-size: 1rem; margin-top: 1rem;">
+    <b>The Critical Gap</b>: While SBTi provides category-level compliance thresholds, the mathematical chain 
+    from <i>corporate action → industry aggregation → sectoral pathway → global carbon budget</i> 
+    cannot be verified. Industries span multiple sectors, but sectoral pathways assume single-sector focus.
+    </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -409,15 +405,45 @@ def main():
     
     st.markdown('<h2 id="industry">🏭 Industry Analysis: Cross-Sectoral Dependencies</h2>', unsafe_allow_html=True)
     
-    st.info(f"💡 **Analyzing**: {selected_industry} based on CDP 2021 disclosure data from {industry_data[selected_industry]['cdp_sample_size']} companies")
+    # MOVED FROM SIDEBAR - PROMINENT INDUSTRY SELECTOR
+    st.markdown("### 🔍 Select Industry to Analyze")
     
-    data = industry_data[selected_industry]
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        selected_industry = st.selectbox(
+            "Choose an industry to explore its cross-sectoral dependencies:",
+            list(industry_data.keys()),
+            help="Based on CDP 2021 corporate disclosure data",
+            key="main_industry_selector"
+        )
+    
+    with col2:
+        data = industry_data[selected_industry]
+        st.metric(
+            "CDP Sample Size",
+            f"{data['cdp_sample_size']} companies",
+            help="Number of companies analyzed from CDP 2021"
+        )
+    
+    st.info(f"💡 **Now analyzing**: {selected_industry} | Scope 3: {data['scope3_total_emissions']}% of total emissions | Spanning {len(data['sector_dependencies'])} IPCC sectors")
     
     # Create tabs
     tab1, tab2, tab3 = st.tabs(["📊 Full Dependency Map", "🎯 Materiality Hotspots", "📋 Guidance Coverage"])
     
     with tab1:
         st.markdown("#### Cross-Sectoral Dependencies")
+        
+        st.markdown("""
+        **How this mapping was constructed** (based on paper methodology):
+        
+        1. **Industry profiling**: Scope 3 category distribution from CDP data (Förster et al. 2025)
+        2. **Materiality filtering**: Only categories contributing ≥5% of Scope 3 retained
+        3. **Physical sector attribution**: LCA studies map categories to IPCC sectors
+        4. **Weighting**: Flow widths = (category share) × (physical decomposition)
+        
+        *This is descriptive, not predictive—showing current value chain structure.*
+        """)
         
         with st.spinner("Generating Sankey diagram..."):
             fig_sankey = create_sankey_diagram(selected_industry, data)
@@ -430,6 +456,9 @@ def main():
         <b>💡 What This Shows</b><br>
         Industries don't fit neatly into IPCC sectors. Each flow represents a different sectoral dependency,
         each with its own cost structure, guidance availability, and technical readiness.
+        <br><br>
+        <b>The Problem</b>: SBTi can verify category-level compliance, but cannot mathematically verify 
+        that these industry targets aggregate to sectoral carbon budgets or the 1.5°C pathway.
         </div>
         """, unsafe_allow_html=True)
     
