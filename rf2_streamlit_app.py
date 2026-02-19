@@ -1,33 +1,119 @@
+"""
+The Need for Industry-Specific Pathways
+========================================
+
+Demonstrating Research Frontier 2: Why sectoral approaches fail for industry realities
+
+This app uses real CDP corporate disclosure data and IPCC AR6 cost assessments to show
+why current sectoral pathways cannot adequately guide industry-specific decarbonization.
+
+Data: CDP (2021) - 900+ companies across 5 industries
+Cost Ranges: IPCC AR6 WGIII Chapter 12
+"""
+
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 import numpy as np
-from plotly.subplots import make_subplots
 
-# Set page config
+# ============================================================================
+# PAGE CONFIGURATION
+# ============================================================================
+
 st.set_page_config(
-    page_title="Near-term Decarbonsiation Targets for corporations: The need for Industry-specific Pathways",
-    page_icon="🎯",
-    layout="wide"
+    page_title="Industry-Specific Pathways",
+    page_icon="🏭",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Title and introduction
-st.title("🎯 Industry-Specific Decarbonization Pathways: Why Sectoral Approaches Fail")
+# ============================================================================
+# CUSTOM CSS - MATCHING RF1 STYLE
+# ============================================================================
+
 st.markdown("""
-**Demonstrating Research Frontier 2: The critical need for industry-specific decarbonization blueprints**
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #58a6ff;
+        margin-bottom: 1rem;
+    }
+    
+    .sub-header {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #79c0ff;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #58a6ff;
+        padding-bottom: 0.5rem;
+    }
+    
+    .info-box {
+        background-color: rgba(56, 139, 253, 0.1);
+        border-left: 4px solid #58a6ff;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .warning-box {
+        background-color: rgba(187, 128, 9, 0.15);
+        border-left: 4px solid #d29922;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .success-box {
+        background-color: rgba(46, 160, 67, 0.15);
+        border-left: 4px solid #3fb950;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .error-box {
+        background-color: rgba(248, 81, 73, 0.15);
+        border-left: 4px solid #f85149;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .key-finding {
+        background-color: rgba(139, 92, 246, 0.1);
+        border: 2px solid #a371f7;
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        margin: 1.5rem 0;
+        font-size: 1.1rem;
+    }
+    
+    .data-card {
+        background-color: rgba(110, 118, 129, 0.1);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #30363d;
+        margin: 0.5rem 0;
+    }
+    
+    .highlight {
+        color: #f85149;
+        font-weight: bold;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-Current climate frameworks assume that IPCC sectoral pathways can guide corporate decarbonization. 
-But industries span multiple sectors with complex cross-dependencies that existing guidance cannot address.
+# ============================================================================
+# DATA: INDUSTRY DEPENDENCIES (CDP 2021)
+# ============================================================================
 
-*This analysis uses real CDP corporate disclosure data and IPCC AR6 cost assessments to demonstrate 
-why current sectoral approaches are fundamentally inadequate for industry realities.*
-""")
-
-# Industry data based on actual CDP research with real IPCC cost ranges
 industry_data = {
     'Food, Beverage & Tobacco': {
-        'scope3_total_emissions': 67,  # % of total emissions that are Scope 3
+        'scope3_total_emissions': 67,
         'sector_dependencies': {
             'AFOLU': {'percentage': 40, 'guidance': 'Available', 'cost_range': '$0-50/tCO2e', 'scope3_category': 'C1: Purchased goods (agricultural)', 'color': '#2E7D32'},
             'Industry': {'percentage': 20, 'guidance': 'Limited', 'cost_range': '$20-100/tCO2e', 'scope3_category': 'C1: Purchased goods (packaging)', 'color': '#FF5722'},
@@ -62,7 +148,7 @@ industry_data = {
         'main_gap': 'No framework for translating product improvements into science-based targets'
     },
     'Financial Services': {
-        'scope3_total_emissions': 99.98,  # Extreme Scope 3 dominance
+        'scope3_total_emissions': 99.98,
         'sector_dependencies': {
             'All_Sectors_via_Investments': {'percentage': 99, 'guidance': 'PCAF available', 'cost_range': 'Variable by sector', 'scope3_category': 'C15: Financed emissions', 'color': '#9C27B0'},
             'Buildings': {'percentage': 1, 'guidance': 'Available', 'cost_range': '$0-50/tCO2e', 'scope3_category': 'C13: Real estate portfolio', 'color': '#2E7D32'}
@@ -86,84 +172,15 @@ industry_data = {
     }
 }
 
-# IPCC sectoral cost data (from AR6 WGIII Chapter 12, Table 12.3)
-ipcc_cost_data = {
-    'AFOLU': {
-        'description': 'Agriculture, Forestry, Other Land Use',
-        'cost_ranges': {
-            'Forest protection': '$0-20/tCO2e',
-            'Soil carbon sequestration': '$20-50/tCO2e',
-            'Agricultural CH4/N2O reduction': '$20-50/tCO2e',
-            'Restoration': '$50-100/tCO2e'
-        },
-        'total_potential': '11.4 GtCO2-eq by 2030'
-    },
-    'Industry': {
-        'description': 'Manufacturing, Processing, Materials',
-        'cost_ranges': {
-            'Energy efficiency': '$0-20/tCO2e',
-            'Material efficiency': '$20-50/tCO2e',
-            'Fuel switching': '$20-100/tCO2e',
-            'CCS': '$100-200/tCO2e'
-        },
-        'total_potential': '5.4 GtCO2-eq by 2030'
-    },
-    'Transport': {
-        'description': 'Logistics, Distribution, Mobility',
-        'cost_ranges': {
-            'Fuel efficiency': '$0-20/tCO2e',
-            'Electric vehicles': 'Variable costs',
-            'Modal shift': '$0-50/tCO2e',
-            'Biofuels': '$50-100/tCO2e'
-        },
-        'total_potential': '3.8 GtCO2-eq by 2030'
-    },
-    'Buildings': {
-        'description': 'Retail, Storage, Facilities',
-        'cost_ranges': {
-            'Energy efficiency': '$0-20/tCO2e',
-            'Building performance': '$20-100/tCO2e',
-            'Onsite renewables': '$20-50/tCO2e'
-        },
-        'total_potential': '2.0 GtCO2-eq by 2030'
-    },
-    'Power': {
-        'description': 'Electricity Generation',
-        'cost_ranges': {
-            'Wind energy': 'Mostly <$0/tCO2e',
-            'Solar energy': 'Mostly <$0/tCO2e',
-            'Nuclear': '$0-50/tCO2e',
-            'Hydropower': '$0-50/tCO2e'
-        },
-        'total_potential': '11.0 GtCO2-eq by 2030'
-    }
-}
+# ============================================================================
+# VISUALIZATION FUNCTIONS
+# ============================================================================
 
-# Sidebar for industry selection
-st.sidebar.header("🏭 Select Industry for Analysis")
-selected_industry = st.sidebar.selectbox(
-    "Choose an industry to explore its cross-sectoral dependencies:",
-    list(industry_data.keys()),
-    help="Based on CDP's analysis of corporate disclosures and SBTi guidance coverage"
-)
-
-# Main dashboard layout
-col1, col2 = st.columns([3, 2])
-
-with col1:
-    st.subheader(f"📊 Cross-Sectoral Dependencies: {selected_industry}")
-    
-    # Create Sankey diagram
-    data = industry_data[selected_industry]
-    
-    # Prepare data for Sankey
+def create_sankey_diagram(industry_name, data):
+    """Create Sankey diagram showing sectoral dependencies"""
     sectors = list(data['sector_dependencies'].keys())
-    industry_name = [selected_industry]
+    all_nodes = sectors + [industry_name]
     
-    # Create source (IPCC sectors) and target (industry) nodes
-    all_nodes = sectors + industry_name
-    
-    # Prepare links
     source_indices = []
     target_indices = []
     values = []
@@ -171,24 +188,15 @@ with col1:
     hover_texts = []
     
     for i, (sector, details) in enumerate(data['sector_dependencies'].items()):
-        source_indices.append(i)  # sector index
-        target_indices.append(len(sectors))  # industry index
+        source_indices.append(i)
+        target_indices.append(len(sectors))
         values.append(details['percentage'])
         colors.append(details['color'])
         
-        # Create hover text with detailed information
-        hover_text = f"""
-        <b>{sector} → {selected_industry}</b><br>
-        Materiality: {details['percentage']}% of Scope 3 emissions<br>
-        Scope 3 Category: {details['scope3_category']}<br>
-        SBTi Guidance: {details['guidance']}<br>
-        IPCC Cost Range: {details['cost_range']}<br>
-        <extra></extra>
-        """
+        hover_text = f"<b>{sector} → {industry_name}</b><br>Materiality: {details['percentage']}% of Scope 3<br>Scope 3 Category: {details['scope3_category']}<br>SBTi Guidance: {details['guidance']}<br>IPCC Cost: {details['cost_range']}<extra></extra>"
         hover_texts.append(hover_text)
     
-    # Create Sankey diagram
-    fig_sankey = go.Figure(data=[go.Sankey(
+    fig = go.Figure(data=[go.Sankey(
         node=dict(
             pad=15,
             thickness=20,
@@ -201,319 +209,514 @@ with col1:
             target=target_indices,
             value=values,
             color=[f"rgba{tuple(list(px.colors.hex_to_rgb(color)) + [0.7])}" for color in colors],
-            hovertemplate='%{customdata}<extra></extra>',
-            customdata=hover_texts
+            customdata=hover_texts,
+            hovertemplate='%{customdata}'
         )
     )])
     
-    fig_sankey.update_layout(
-        title=f"Cross-Sectoral Dependencies (CDP 2021 Data)",
+    fig.update_layout(
+        title=f"Cross-Sectoral Dependencies: {industry_name}",
         font_size=12,
         height=400,
-        annotations=[
-            dict(
-                text="<b>Left:</b> IPCC Sectors with Pathways<br><b>Right:</b> Industry Reality<br><b>Flows:</b> Actual CDP Materiality Data",
-                showarrow=False,
-                x=0.5, y=-0.1,
-                xref="paper", yref="paper",
-                font=dict(size=10)
-            )
-        ]
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
     )
     
-    st.plotly_chart(fig_sankey, use_container_width=True)
-    
-    # Guidance coverage summary
-    st.markdown("### 📋 Guidance Coverage Analysis")
-    
-    guidance_summary = []
-    for sector, details in data['sector_dependencies'].items():
-        guidance_summary.append({
-            'IPCC Sector': sector,
-            'Materiality (% Scope 3)': f"{details['percentage']}%",
-            'SBTi Guidance': details['guidance'],
-            'IPCC Cost Range': details['cost_range'],
-            'Status': '✅' if details['guidance'] == 'Available' else '⚠️' if 'Generic' in details['guidance'] or 'Recent' in details['guidance'] else '❌'
-        })
-    
-    guidance_df = pd.DataFrame(guidance_summary)
-    st.dataframe(guidance_df, use_container_width=True, hide_index=True)
+    return fig
 
-with col2:
-    st.subheader("🎯 The Guidance Inadequacy Problem")
+def create_hotspot_chart(data):
+    """Create bar chart showing materiality hotspots >20%"""
+    hotspots = [(sector, details['percentage']) for sector, details in data['sector_dependencies'].items() if details['percentage'] >= 20]
     
-    # Calculate guidance gaps
-    total_coverage = sum([
-        details['percentage'] for sector, details in data['sector_dependencies'].items() 
-        if details['guidance'] == 'Available'
+    if not hotspots:
+        hotspots = sorted([(sector, details['percentage']) for sector, details in data['sector_dependencies'].items()], key=lambda x: x[1], reverse=True)[:3]
+    
+    sectors, percentages = zip(*hotspots)
+    
+    fig = go.Figure(data=[
+        go.Bar(
+            y=sectors,
+            x=percentages,
+            orientation='h',
+            marker_color='#58a6ff',
+            text=percentages,
+            texttemplate='%{text}%',
+            textposition='outside'
+        )
     ])
     
-    gap_coverage = 100 - total_coverage
-    
-    # Create pie chart showing guidance gaps
-    coverage_data = pd.DataFrame({
-        'Category': ['Has Industry-Specific Guidance', 'Guidance Gap'],
-        'Percentage': [total_coverage, gap_coverage],
-        'Color': ['#4CAF50', '#F44336']
-    })
-    
-    fig_pie = px.pie(
-        coverage_data, 
-        values='Percentage', 
-        names='Category',
-        color='Category',
-        color_discrete_map={'Has Industry-Specific Guidance': '#4CAF50', 'Guidance Gap': '#F44336'},
-        title=f"{selected_industry} Guidance Coverage"
+    fig.update_layout(
+        title="Materiality Hotspots (>20% of Scope 3)",
+        xaxis_title="% of Total Scope 3 Emissions",
+        yaxis_title="",
+        height=300,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#c9d1d9')
     )
-    fig_pie.update_traces(textposition='inside', textinfo='percent+label')
-    fig_pie.update_layout(height=300, showlegend=False)
     
-    st.plotly_chart(fig_pie, use_container_width=True)
+    return fig
+
+# ============================================================================
+# MAIN APPLICATION
+# ============================================================================
+
+def main():
+    # ========================================================================
+    # SIDEBAR NAVIGATION
+    # ========================================================================
     
-    # Key insights
-    st.markdown(f"""
-    **Key Challenge:**
-    {data['key_challenge']}
+    with st.sidebar:
+        st.markdown("## 📍 Navigation")
+        st.markdown("---")
+        
+        st.markdown("""
+        <style>
+        .nav-link-button {
+            display: block;
+            padding: 0.6rem 1rem;
+            margin: 0.3rem 0;
+            border-radius: 0.5rem;
+            background-color: rgba(110, 118, 129, 0.1);
+            color: inherit;
+            text-decoration: none;
+            border: 1px solid #30363d;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .nav-link-button:hover {
+            background-color: rgba(151, 166, 195, 0.15);
+            border-color: #4a9eff;
+            text-decoration: none;
+            color: inherit;
+        }
+        </style>
+        
+        <a href="#intro" class="nav-link-button">🏠 Introduction</a>
+        <a href="#industry" class="nav-link-button">🏭 Industry Analysis</a>
+        <a href="#costs" class="nav-link-button">💰 Cost Challenge</a>
+        <a href="#conclusions" class="nav-link-button">💡 Conclusions</a>
+        <a href="#references" class="nav-link-button">📚 References</a>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # Industry selector
+        st.markdown("## 🏭 Select Industry")
+        selected_industry = st.selectbox(
+            "Choose industry to analyze:",
+            list(industry_data.keys()),
+            help="Based on CDP 2021 corporate disclosure data"
+        )
+        
+        st.markdown("---")
+        
+        # Quick stats
+        data = industry_data[selected_industry]
+        st.markdown(f"""
+        <div style="font-size: 0.9rem; line-height: 1.8;">
+        <b>📊 {selected_industry}</b><br>
+        • Scope 3: {data['scope3_total_emissions']}%<br>
+        • Sectors: {len(data['sector_dependencies'])}<br>
+        • CDP Sample: {data['cdp_sample_size']} companies<br>
+        <br>
+        <b>📄 Paper Status</b><br>
+        Under review at<br>
+        <i>Nature Sustainability</i>
+        </div>
+        """, unsafe_allow_html=True)
     
-    **Sample Size:** {data['cdp_sample_size']} companies (CDP 2021)
+    # ========================================================================
+    # MAIN HEADER
+    # ========================================================================
     
-    **Main Gap:** {data['main_gap']}
+    st.markdown('<h1 class="main-header">🏭 The Need for Industry-Specific Pathways</h1>', unsafe_allow_html=True)
+    
+    # ========================================================================
+    # INTRODUCTION
+    # ========================================================================
+    
+    st.markdown('<h2 id="intro">🏠 Introduction</h2>', unsafe_allow_html=True)
+    
+    st.markdown("### The Sectoral Pathway Assumption")
+    
+    # Metric cards
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Industries Analyzed", "5", help="Major industries from CDP data")
+    with col2:
+        avg_scope3 = np.mean([d['scope3_total_emissions'] for d in industry_data.values()])
+        st.metric("Avg Scope 3", f"{avg_scope3:.0f}%", help="Average Scope 3 as % of total emissions")
+    with col3:
+        avg_sectors = np.mean([len(d['sector_dependencies']) for d in industry_data.values()])
+        st.metric("Avg Sectors/Industry", f"{avg_sectors:.1f}", help="Average IPCC sectors per industry")
+    with col4:
+        total_companies = sum([d['cdp_sample_size'] for d in industry_data.values()])
+        st.metric("CDP Sample", f"{total_companies}", help="Total companies analyzed")
+    
+    st.markdown("""
+    Current climate frameworks assume **IPCC sectoral pathways** can guide corporate decarbonization. 
+    But industries don't operate within single sectors—they span multiple sectors with complex 
+    cross-dependencies that existing guidance cannot address.
     """)
-
-# IPCC Cost Analysis Section
-st.subheader("💰 IPCC AR6 Cross-Sectoral Cost Analysis")
-
-st.markdown("""
-**Source:** IPCC AR6 WGIII Chapter 12, Table 12.3 - "Overview of global net GHG emissions reduction potentials"
-
-The challenge isn't just missing guidance—it's cost uncertainty across value chains.
-""")
-
-# Create cost comparison visualization
-cost_tab1, cost_tab2 = st.tabs(["📊 Cost Ranges by Sector", "🎮 Investment Complexity Simulator"])
-
-with cost_tab1:
-    # Display IPCC cost data
-    st.markdown("### IPCC AR6 Sectoral Mitigation Costs (2030)")
+    
+    # Visual comparison
+    st.markdown("### The Reality Gap")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        # Cost ranges table
-        cost_summary = []
-        for sector, data in ipcc_cost_data.items():
-            for intervention, cost in data['cost_ranges'].items():
-                cost_summary.append({
-                    'IPCC Sector': sector,
-                    'Intervention': intervention,
-                    'Cost Range': cost,
-                    'Potential': data['total_potential']
-                })
-        
-        cost_df = pd.DataFrame(cost_summary)
-        st.dataframe(cost_df, use_container_width=True, hide_index=True)
+        st.markdown("""
+        <div style="background-color: rgba(63, 185, 80, 0.15); padding: 1.5rem; border-radius: 0.8rem; border-left: 4px solid #3fb950;">
+        <h4 style="color: #3fb950; margin-top: 0;">📚 IPCC Sectoral Pathways</h4>
+        <ul style="font-size: 1.05rem; line-height: 1.8;">
+        <li>Sector-specific guidance</li>
+        <li>Single-sector focus</li>
+        <li>Standardized cost ranges</li>
+        <li><b>Designed for national inventories</b></li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        # Sector potential visualization
-        sector_potentials = [float(data['total_potential'].split()[0]) for data in ipcc_cost_data.values()]
-        sector_names = list(ipcc_cost_data.keys())
+        st.markdown("""
+        <div style="background-color: rgba(248, 81, 73, 0.15); padding: 1.5rem; border-radius: 0.8rem; border-left: 4px solid #f85149;">
+        <h4 style="color: #f85149; margin-top: 0;">🏭 Industry Reality</h4>
+        <ul style="font-size: 1.05rem; line-height: 1.8;">
+        <li>Multi-sectoral dependencies</li>
+        <li>Complex value chains</li>
+        <li>Varying cost structures</li>
+        <li><b>Need industry-specific frameworks</b></li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # The key question
+    st.markdown("""
+    <div class="key-finding">
+    <h3 style="margin-top: 0; color: #a371f7;">🎯 The Central Question</h3>
+    <p style="font-size: 1.2rem;">
+    Can IPCC sectoral pathways adequately guide industry-specific corporate decarbonization?
+    </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # ========================================================================
+    # INDUSTRY ANALYSIS
+    # ========================================================================
+    
+    st.markdown('<h2 id="industry">🏭 Industry Analysis: Cross-Sectoral Dependencies</h2>', unsafe_allow_html=True)
+    
+    st.info(f"💡 **Analyzing**: {selected_industry} based on CDP 2021 disclosure data from {industry_data[selected_industry]['cdp_sample_size']} companies")
+    
+    data = industry_data[selected_industry]
+    
+    # Create tabs
+    tab1, tab2, tab3 = st.tabs(["📊 Full Dependency Map", "🎯 Materiality Hotspots", "📋 Guidance Coverage"])
+    
+    with tab1:
+        st.markdown("#### Cross-Sectoral Dependencies")
         
-        fig_potential = px.bar(
-            x=sector_potentials,
-            y=sector_names,
-            orientation='h',
-            title="IPCC AR6 Sectoral Mitigation Potential (2030)",
-            labels={'x': 'Potential (GtCO2-eq)', 'y': 'IPCC Sector'},
-            color=sector_potentials,
-            color_continuous_scale='Viridis'
-        )
-        fig_potential.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig_potential, use_container_width=True)
-
-with cost_tab2:
-    st.markdown("### Investment Complexity Demonstration")
+        with st.spinner("Generating Sankey diagram..."):
+            fig_sankey = create_sankey_diagram(selected_industry, data)
+            st.plotly_chart(fig_sankey, use_container_width=True)
+        
+        st.caption("**Left**: IPCC Sectors | **Right**: Industry Reality | **Flows**: CDP Materiality Data (%)")
+        
+        st.markdown("""
+        <div class="info-box">
+        <b>💡 What This Shows</b><br>
+        Industries don't fit neatly into IPCC sectors. Each flow represents a different sectoral dependency,
+        each with its own cost structure, guidance availability, and technical readiness.
+        </div>
+        """, unsafe_allow_html=True)
     
-    selected_data = industry_data[selected_industry]
+    with tab2:
+        st.markdown("#### Key Emission Hotspots")
+        
+        fig_hotspots = create_hotspot_chart(data)
+        st.plotly_chart(fig_hotspots, use_container_width=True)
+        
+        st.markdown(f"""
+        <div class="success-box">
+        <b>✅ Key Insight</b><br>
+        <b>{data['key_challenge']}</b>
+        <br><br>
+        These hotspots represent where industry-specific guidance is most urgently needed, but current
+        sectoral pathways provide inadequate coverage.
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.markdown(f"""
-    **Scenario:** A {selected_industry} company with $10M decarbonization budget needs to optimize 
-    across {len(selected_data['sector_dependencies'])} different sectoral pathways with varying costs and uncertainties.
+    with tab3:
+        st.markdown("#### SBTi Guidance Coverage Analysis")
+        
+        guidance_summary = []
+        for sector, details in data['sector_dependencies'].items():
+            guidance_summary.append({
+                'IPCC Sector': sector,
+                'Materiality (%)': details['percentage'],
+                'SBTi Guidance': details['guidance'],
+                'IPCC Cost Range': details['cost_range'],
+                'Status': '✅' if details['guidance'] == 'Available' else '⚠️' if 'Generic' in details['guidance'] or 'Recent' in details['guidance'] else '❌'
+            })
+        
+        guidance_df = pd.DataFrame(guidance_summary)
+        guidance_df = guidance_df.sort_values('Materiality (%)', ascending=False)
+        st.dataframe(guidance_df, use_container_width=True, hide_index=True)
+        
+        # Calculate coverage
+        total_coverage = sum([
+            details['percentage'] for sector, details in data['sector_dependencies'].items() 
+            if details['guidance'] == 'Available'
+        ])
+        
+        st.markdown(f"""
+        <div class="error-box">
+        <b>⚠️ Coverage Gap</b><br>
+        Only <b>{total_coverage:.0f}%</b> of this industry's Scope 3 emissions have adequate guidance.<br>
+        <b>{100 - total_coverage:.0f}%</b> lack industry-specific methodologies.
+        <br><br>
+        <b>Main Gap</b>: {data['main_gap']}
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # ========================================================================
+    # COST CHALLENGE
+    # ========================================================================
+    
+    st.markdown('<h2 id="costs">💰 The Cost Challenge</h2>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    Beyond guidance gaps, industries face **cost uncertainty** across their value chains. IPCC sectoral 
+    cost ranges vary from **$0-200/tCO2e**, creating optimization impossibility without industry-specific frameworks.
     """)
     
     # Create cost uncertainty visualization
-    fig_uncertainty = go.Figure()
+    st.markdown(f"### Cost Uncertainty: {selected_industry}")
+    
+    fig_cost = go.Figure()
     
     y_pos = 0
-    for sector, details in selected_data['sector_dependencies'].items():
-        # Extract cost range
+    for sector, details in data['sector_dependencies'].items():
         cost_range = details['cost_range']
         materiality = details['percentage']
         
-        # Simple cost parsing (could be enhanced)
+        # Parse cost range
         if '$' in cost_range and '-' in cost_range:
             try:
                 costs = cost_range.replace('$', '').replace('/tCO2e', '').split('-')
                 min_cost = float(costs[0])
                 max_cost = float(costs[1])
             except:
-                min_cost, max_cost = 20, 100  # default for non-parseable ranges
+                min_cost, max_cost = 20, 100
         else:
             min_cost, max_cost = 20, 100
         
-        # Add uncertainty bar
-        fig_uncertainty.add_trace(go.Scatter(
+        # Add range bar
+        fig_cost.add_trace(go.Scatter(
             x=[min_cost, max_cost],
             y=[y_pos, y_pos],
             mode='lines+markers',
             name=sector,
             line=dict(width=8),
             marker=dict(size=12),
-            hovertemplate=f"""
-            <b>{sector}</b><br>
-            Materiality: {materiality}% of Scope 3<br>
-            Cost Range: {cost_range}<br>
-            Guidance: {details['guidance']}<br>
-            <extra></extra>
-            """
+            hovertemplate=f"<b>{sector}</b><br>Materiality: {materiality}%<br>Cost: {cost_range}<br>Guidance: {details['guidance']}<extra></extra>"
         ))
         
-        # Add materiality indicator
-        fig_uncertainty.add_annotation(
+        # Add materiality label
+        fig_cost.add_annotation(
             x=max_cost + 10,
             y=y_pos,
             text=f"{materiality}%",
             showarrow=False,
-            font=dict(size=10)
+            font=dict(size=10, color='#c9d1d9')
         )
         
         y_pos += 1
     
-    fig_uncertainty.update_layout(
-        title="Cost Uncertainty vs. Emission Materiality",
+    fig_cost.update_layout(
+        title="Cost Ranges vs. Emission Materiality",
         xaxis_title="Cost Range ($/tCO2e)",
-        yaxis_title="Sectoral Dependencies",
-        yaxis=dict(tickvals=list(range(len(selected_data['sector_dependencies']))), 
-                   ticktext=list(selected_data['sector_dependencies'].keys())),
+        yaxis=dict(
+            tickvals=list(range(len(data['sector_dependencies']))),
+            ticktext=list(data['sector_dependencies'].keys())
+        ),
         height=400,
-        showlegend=False
+        showlegend=False,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#c9d1d9')
     )
     
-    st.plotly_chart(fig_uncertainty, use_container_width=True)
+    st.plotly_chart(fig_cost, use_container_width=True)
     
     st.markdown("""
-    **The Investment Dilemma:**
-    - Target lowest-cost options? → Miss material emission sources
-    - Target highest-materiality? → Face extreme cost uncertainty  
-    - Current guidance provides no framework for optimization
-    """)
-
-# Key insights and conclusions
-st.subheader("🔑 Why Current Approaches Fail")
-
-insight_col1, insight_col2, insight_col3 = st.columns(3)
-
-with insight_col1:
+    <div class="warning-box">
+    <b>💡 The Investment Dilemma</b><br><br>
+    <b>Target lowest-cost options?</b> → Miss material emission sources<br>
+    <b>Target highest-materiality?</b> → Face extreme cost uncertainty<br>
+    <b>Current sectoral guidance?</b> → Provides no optimization framework<br>
+    <br>
+    <b>Result</b>: Companies cannot make informed investment decisions without industry-specific cost modeling.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # ========================================================================
+    # CONCLUSIONS
+    # ========================================================================
+    
+    st.markdown('<h2 id="conclusions">💡 Conclusions: Why Industry-Specific Pathways Matter</h2>', unsafe_allow_html=True)
+    
+    st.markdown("### What We Found")
+    
     st.markdown("""
-    ### 🎯 Materiality Mismatch
+    <div class="key-finding">
+    <b>Three Fundamental Gaps in Current Sectoral Approaches:</b><br><br>
     
-    Industries span multiple IPCC sectors with vastly different:
-    - **Cost ranges** ($0-200/tCO2e variation)
-    - **Guidance availability** (✅❌⚠️ mix)
-    - **Technical readiness** (decades to years)
-    """)
-
-with insight_col2:
+    <b>1. Multi-Sectoral Reality</b>: Industries span 3-5 IPCC sectors on average, but guidance assumes single-sector focus<br>
+    <b>2. Guidance Inadequacy</b>: 40-90% of industry emissions lack sector-specific methodologies<br>
+    <b>3. Cost Optimization Impossibility</b>: $0-200/tCO2e ranges across value chains prevent informed investment
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("### Why This Matters")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="data-card">
+        <b>🎯 For Companies</b><br><br>
+        Cannot translate sectoral pathways into actionable strategies without 
+        industry-specific blueprints integrating cross-sectoral dependencies.
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="data-card">
+        <b>📊 For Standard-Setters</b><br><br>
+        Current SBTi guidance leaves 50%+ of corporate emissions without 
+        credible methodologies for science-based target setting.
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div class="data-card">
+        <b>💰 For Investors</b><br><br>
+        Cannot assess credibility of corporate climate strategies without 
+        industry-specific frameworks to evaluate decarbonization plans.
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("### The Path Forward: Research Frontier 2")
+    
     st.markdown("""
-    ### 📊 Cross-Sectoral Complexity
+    This analysis demonstrates why **industry-specific decarbonization blueprints** are essential. 
+    Current sectoral approaches weren't designed for industry complexities and cannot adequately guide 
+    corporate climate action.
     
-    Current sectoral pathways assume:
-    - **Single-sector focus** 
-    - **Uniform cost assumptions**
-    - **Independent optimization**
+    **What's Needed**:
+    - **Materiality-weighted pathway integration** across multiple IPCC sectors
+    - **Dynamic cost modeling** with uncertainty quantification
+    - **Cross-sectoral optimization frameworks** for investment prioritization
+    - **Technology readiness-adjusted timelines** for industry realities
     
-    Reality: **Complex interdependencies**
+    **RF2 Research Priority**: Systematic development of these industry-specific blueprints can transform 
+    corporate climate action from fragmented compliance to strategic decarbonization aligned with 
+    planetary boundaries.
     """)
-
-with insight_col3:
+    
+    st.markdown("---")
+    
+    # ========================================================================
+    # REFERENCES
+    # ========================================================================
+    
+    st.markdown('<h2 id="references">📚 References & Data Sources</h2>', unsafe_allow_html=True)
+    
+    with st.expander("📊 Data Sources"):
+        st.markdown("""
+        ### Primary Data
+        
+        **CDP (2022)**. *Technical Note: Relevance of Scope 3 Categories by Sector*  
+        - Real materiality data from 900+ companies across 5 industries
+        - Industry-specific emission hotspot identification
+        - Source: CDP NZDPU database (2021 disclosure year)
+        
+        **IPCC AR6 WGIII Chapter 12 (2022)**. *Cross-sectoral Perspectives*  
+        - Authoritative sectoral cost assessments (Table 12.3)
+        - Mitigation potential by sector (2030)
+        - Technology readiness evaluations
+        
+        **SBTi (2024)**. *Sector Guidance Database*  
+        - Coverage assessment across industries
+        - Methodology gap identification
+        """)
+    
+    with st.expander("🔬 Methodology"):
+        st.markdown("""
+        ### Analysis Approach
+        
+        **Industry Selection**: Based on CDP disclosure volume and Scope 3 materiality
+        
+        **Sectoral Mapping**: Cross-reference CDP Scope 3 categories to IPCC sectors
+        
+        **Guidance Coverage**: Assessment of SBTi methodology availability by sector
+        
+        **Cost Ranges**: IPCC AR6 WGIII sectoral cost estimates
+        
+        **Sample Sizes**:
+        - Food, Beverage & Tobacco: 162 companies
+        - Transport OEMs: 48 companies
+        - Capital Goods: 166 companies
+        - Financial Services: 377 companies
+        - Chemicals: 146 companies
+        """)
+    
+    with st.expander("✍️ How to Cite"):
+        st.markdown("""
+        ### Paper Information
+        
+        **Title**: *Operationalizing corporate climate action through five research frontiers*  
+        **Status**: Under review at *Nature Sustainability*  
+        **Research Frontier 2**: Industry-specific decarbonization pathways
+        
+        ### Citation
+        
+        ```
+        [Authors]. (2026). Operationalizing corporate climate action through 
+        five research frontiers. Manuscript under review at Nature Sustainability.
+        ```
+        """)
+    
+    # ========================================================================
+    # FOOTER
+    # ========================================================================
+    
+    st.markdown("---")
     st.markdown("""
-    ### 🚀 The RF2 Solution
-    
-    **Industry-Specific Blueprints** that integrate:
-    - ✅ Cross-sectoral materiality mapping
-    - ✅ Dynamic cost modeling  
-    - ✅ Technology readiness assessment
-    - ✅ Investment optimization frameworks
-    """)
+    <div style="text-align: center; color: #8b949e; padding: 2rem;">
+    <p><b>The Need for Industry-Specific Pathways</b></p>
+    <p>Part of <i>"Operationalizing corporate climate action through five research frontiers"</i></p>
+    <p>Under review at <i>Nature Sustainability</i></p>
+    <br>
+    <p style="font-size: 0.9rem;">
+    Research Frontier 2 Demonstration | Last updated: February 2026
+    </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Scientific evidence section
-st.subheader("📚 Scientific Evidence Base")
+# ============================================================================
+# RUN APPLICATION
+# ============================================================================
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("""
-    **Key Research Supporting This Analysis:**
-    
-    1. **CDP Technical Note (2022)**: "Relevance of Scope 3 Categories by Sector"
-       - Real materiality data from 1,000+ companies
-       - Industry-specific emission hotspot identification
-    
-    2. **IPCC AR6 WGIII Chapter 12 (2022)**: "Cross-sectoral Perspectives"  
-       - Authoritative sectoral cost assessments
-       - Technology readiness evaluations
-    
-    3. **SBTi Scope 3 Review (2023)**: "Catalyzing Value Chain Decarbonization"
-       - 85% of companies cite methodology gaps
-       - Industry-specific guidance limitations
-    """)
-
-with col2:
-    st.markdown("""
-    **Data Sources:**
-    
-    - **Industry Dependencies**: CDP NZDPU database (2021)
-    - **Cost Ranges**: IPCC AR6 WGIII Table 12.3
-    - **Guidance Coverage**: SBTi methodology database
-    - **Sample Sizes**: 162-376 companies per sector
-    
-    **Key Findings:**
-    - >32 GtCO2-eq mitigation potential by 2030
-    - 50%+ potential available at <$20/tCO2e
-    - But optimization requires industry-specific frameworks
-    """)
-
-# Call to action
-st.subheader("🎯 The Research Frontier 2 Case")
-
-st.markdown("""
-### This Analysis Demonstrates:
-
-1. **Problem Scale**: Even industries with some guidance (like F&B with FLAG) face 60%+ emission sources without pathways
-2. **Cost Complexity**: $0-200/tCO2e ranges across value chains create optimization impossibility  
-3. **Investment Paralysis**: Companies lack frameworks to balance cost-effectiveness with materiality
-4. **Scientific Gap**: Current sectoral approaches weren't designed for industry-specific complexities
-
-### The Solution: Industry-Specific Decarbonization Blueprints
-
-**RF2 research framework** translates IPCC sectoral pathways into actionable industry strategies through:
-- **Materiality-weighted pathway integration**
-- **Dynamic cost modeling with uncertainty quantification**  
-- **Technology readiness-adjusted timelines**
-- **Cross-sectoral optimization algorithms**
-
-**Next Steps**: This complexity isn't a limitation—it's the research opportunity that RF2 addresses.
-Systematic development of industry-specific blueprints can transform corporate climate action from 
-fragmented compliance to strategic decarbonization aligned with planetary boundaries.
-""")
-
-# Footer with citations
-st.markdown("---")
-st.markdown("""
-**Methodology Note**: This simulator demonstrates the problem complexity that necessitates RF2 research. 
-It is based on the perspective research artcile titled "Operationalizing corporate climate action through five research frontiers" 
-submitted to Nature Sustainability and uses real corporate disclosure data to highlight 
-the urgent need for industry-specific decarbonization blueprints.
-
-**Citation**: CDP (2022). Technical Note: Relevance of Scope 3 Categories by Sector. 
-IPCC (2022). Climate Change 2022: Mitigation of Climate Change, Chapter 12: Cross-sectoral Perspectives.
-""")
+if __name__ == "__main__":
+    main()
